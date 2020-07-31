@@ -1,4 +1,4 @@
-#include <main.h>
+#include <Arduino.h>
 #include <FastLED.h>
 
 FASTLED_USING_NAMESPACE
@@ -209,7 +209,7 @@ void loop() {
   gPatterns[gCurrentPatternNumber]();
 
   // send the 'leds' array out to the actual LED strip
-  FastLED.ARRAY_SIZE();  
+  FastLED.show();  
   // insert a delay to keep the framerate modest
   FastLED.delay(1000/FRAMES_PER_SECOND); 
 

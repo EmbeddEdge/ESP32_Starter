@@ -1,5 +1,4 @@
 #include <Arduino.h>
-#include "main.h"
 #include "UartModule.h"
 
 extern uint8_t gFlagTrig1;

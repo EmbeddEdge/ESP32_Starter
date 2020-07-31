@@ -3,15 +3,12 @@
 
 #include <Arduino.h>
 #include <FastLED.h>
+//Ported to ESP32
+#include <esp_wifi.h>
 #include <WiFi.h>
-//#include <ESP8266WiFi.h> // Library specific to ESP8266?
-//#include <WiFiManager.h> // Library specific to ESP8266?
-//#include <WiFiClient.h>
-//#include <ESP8266WiFiMulti.h>   
+#include <WiFiClient.h>
+//#include <WiFiClient.h>  
 //#include <WiFiUdp.h>
-//#include <ESP8266mDNS.h>    
-//#include <ESP8266WebServer.h>   // Include the WebServer library
-////#include <ESP8266HTTPClient.h>
 //#include <WiFiClientSecure.h>
 //#include <NTPClient.h>
 //#include <ArduinoOTA.h>
@@ -21,11 +18,9 @@
 //#include <Adafruit_INA219.h>
 //#include <FS.h>   // Include the SPIFFS library
 //#include <EEPROM.h>  
-//#include "adc.h" 
-#include "RgbModule.h"
 #include "WifiModule.h"
+#include "RgbModule.h"
 #include "UartModule.h"
-//#include "memory.h"
 
 #define DEBUG             0   // 0 = debugging disabled, 1 = enabled
 
@@ -104,9 +99,6 @@
 /* -----------------------------------------------*/
 
 /* Function Prototypes -------------------------------------*/
-//Debug Functions
-void heartBeatPrint(void);
-void check_status(void);
 
 //Neopixel Driving
 void drawTwinkles(CRGBSet&);

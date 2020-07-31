@@ -1,8 +1,7 @@
 #ifndef RgbModuleH
 #define RgbModuleH
 
-#define PROMPT  "\r\n> "
-#define ACK     "\r\n>> "
+#include "FastLED.h"
 
 #if defined(FASTLED_VERSION) && (FASTLED_VERSION < 3001000)
 #warning "Requires FastLED 3.1 or later; check github for latest code."
@@ -52,10 +51,6 @@
 // incandescent bulbs change color as they get dim down.
 #define COOL_LIKE_INCANDESCENT 1
 
-//#define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
-
-typedef void (*SimplePatternList[])();
-
 //RGB Pattern Functions
 void nextPattern(void);
 void rainbow(void); 
@@ -65,5 +60,8 @@ void confetti(void);
 void sinelon(void);
 void bpm(void);
 void juggle(void); 
+void runPatterns(void);
+
+typedef void (*SimplePatternList[])();
 
 #endif

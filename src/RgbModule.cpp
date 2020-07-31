@@ -1,6 +1,6 @@
 #include <Arduino.h>
-#include "main.h"
 #include "RgbModule.h"
+#include "main.h"
 
 // Define the array of leds
 extern CRGB leds[NUM_LEDS];
@@ -12,6 +12,13 @@ extern CRGBPalette16 gTargetPalette;
 extern uint8_t gCurrentPatternNumber; 
 extern uint8_t gHue; 
 extern SimplePatternList gPatterns;
+
+typedef void (*SimplePatternList[])();
+// List of patterns to cycle through.  Each is defined as a separate function below.
+SimplePatternList gPatterns = { rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm };
+
+#define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
+//#define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
 
 /* **************nextPattern******************************************************
 Updates the pattern to be used
@@ -92,4 +99,12 @@ void juggle() {
     leds[beatsin16( i+7, 0, NUM_LEDS-1 )] |= CHSV(dothue, 200, 255);
     dothue += 32;
   }
+}
+
+/* **************runPatterns******************************************************
+Call the current pattern function once, updating the 'leds' array
+*/
+void runPatterns() 
+{
+  gPatterns[gCurrentPatternNumber]();
 }
