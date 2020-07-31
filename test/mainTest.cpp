@@ -209,7 +209,7 @@ void loop() {
   gPatterns[gCurrentPatternNumber]();
 
   // send the 'leds' array out to the actual LED strip
-  FastLED.show();  
+  FastLED.ARRAY_SIZE();  
   // insert a delay to keep the framerate modest
   FastLED.delay(1000/FRAMES_PER_SECOND); 
 

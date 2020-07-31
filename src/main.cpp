@@ -1,116 +1,300 @@
-/*
- WiFi Web Server LED Blink
+/*******************************************************************************
+* Title                 :   ESP32 WiFi Config
+* Filename              :   main.c
+* Author                :   Turyn Lim Banda
+* Origin Date           :   26/07/2020
+* Version               :   1.0.0
+* Compiler              :   PlatformIO
+* Target                :   ESP32
+* Notes                 :   None
+*
+* THIS SOFTWARE IS PROVIDED BY EMBEDDEDGE "AS IS" AND ANY EXPRESSED
+* OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+* OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+* IN NO EVENT SHALL EMBEDDEDGE OR ITS CONTRIBUTORS BE LIABLE FOR ANY
+* DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+* STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+* IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+* THE POSSIBILITY OF SUCH DAMAGE.
+*
+*******************************************************************************/
+/*************** MODULE REVISION LOG ***************************************************************
+*
+*    Date    Version  Author           Description 
+*  26/07/20   1.0.0   Turyn Lim Banda  Initial Coding.
+*
+****************************************************************************************************/
 
- A simple web server that lets you blink an LED via the web.
- This sketch will print the IP address of your WiFi Shield (once connected)
- to the Serial monitor. From there, you can open that address in a web browser
- to turn on and off the LED on pin 5.
-
- If the IP address of your shield is yourAddress:
- http://yourAddress/H turns the LED on
- http://yourAddress/L turns it off
-
- This example is written for a network using WPA encryption. For
- WEP or WPA, change the Wifi.begin() call accordingly.
-
- Circuit:
- * WiFi shield attached
- * LED attached to pin 5
-
- created for arduino 25 Nov 2012
- by Tom Igoe
-
-ported for sparkfun esp32 
-31.01.2017 by Jan Hendrik Berlin
- 
+/** @file main.c
+ *  @brief The implementation for the dio.
  */
-#include <Arduino.h>
+/******************************************************************************
+* Includes
+*******************************************************************************/
+#include "main.h"
+FASTLED_USING_NAMESPACE
+/******************************************************************************
+* Module Preprocessor Constants
+*******************************************************************************/
+
+/******************************************************************************
+* Module Preprocessor Macros
+*******************************************************************************/
+
+/******************************************************************************
+* Module Typedefs
+*******************************************************************************/
+
+/******************************************************************************
+* Module Variable Definitions
+*******************************************************************************/
+uint8_t gFlagTrig1 = 0;
+uint8_t gFlagTrig2 = 0;
+// Use from 0 to 4. Higher nimber, more debugging messages and memory usage.
+#define _WIFIMGR_LOGLEVEL_    4
+//For ESP32, To use ESP32 Dev Module, QIO, Flash 4MB/80MHz, Upload 921600
+
+
+//Ported to ESP32
+#include <esp_wifi.h>
 #include <WiFi.h>
+#include <WiFiClient.h>
 
-const char* ssid     = "Your_SSID";
-const char* password = "Your_Password";
+#include <ESP_WiFiManager.h>              //https://github.com/khoih-prog/ESP_WiFiManager
 
-WiFiServer server(80);
+#define ESP_getChipId()   ((uint32_t)ESP.getEfuseMac())
+
+#define LED_ON      HIGH
+#define LED_OFF     LOW
+
+#define WIFI_CONNECT_TIMEOUT        30000L
+#define WHILE_LOOP_DELAY            200L
+#define WHILE_LOOP_STEPS            (WIFI_CONNECT_TIMEOUT / ( 3 * WHILE_LOOP_DELAY ))
+
+// SSID and PW for Config Portal
+String ssid = "ESP_" + String(ESP_getChipId(), HEX);
+const char* password = "your_password";
+
+// SSID and PW for your Router
+String Router_SSID;
+String Router_Pass;
+
+// Indicates whether ESP has WiFi credentials saved from previous session
+bool initialConfig = false;
+
+IPAddress stationIP   = IPAddress(192, 168, 2, 224);
+IPAddress gatewayIP   = IPAddress(192, 168, 2, 1);
+IPAddress netMask     = IPAddress(255, 255, 255, 0);
+IPAddress dns1IP      = gatewayIP;
+IPAddress dns2IP      = IPAddress(8, 8, 8, 8);
+
+// Define the array of leds
+CRGB leds[NUM_LEDS];
+CRGBArray<NUM_LEDS> ledsTF;
+
+// Background color for 'unlit' pixels
+// Can be set to CRGB::Black if desired.
+CRGB gBackgroundColor = CRGB::Black; 
+// Example of dim incandescent fairy light background color
+// CRGB gBackgroundColor = CRGB(CRGB::FairyLight).nscale8_video(16);
+
+CRGBPalette16 gCurrentPalette;
+CRGBPalette16 gTargetPalette;
+
+uint8_t gCurrentPatternNumber = 0; // Index number of which pattern is current
+uint8_t gHue = 0; // rotating "base color" used by many of the patterns
+
+// List of patterns to cycle through.  Each is defined as a separate function below.
+SimplePatternList gPatterns = { rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm };
 
 void setup()
 {
-    Serial.begin(115200);
-    pinMode(5, OUTPUT);      // set the LED pin mode
+  // put your setup code here, to run once:
+  // initialize the LED digital pin as an output.
+  delay(3000); //safety startup delay
+  pinMode(PIN_LED, OUTPUT);
+  FastLED.addLeds<LED_TYPE,DATA_PIN>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+  // set master brightness control
+  FastLED.setBrightness(BRIGHTNESS);
 
-    delay(10);
+  Serial.begin(115200);
+  Serial.println("\nStarting");
+
+  unsigned long startedAt = millis();
+
+  //Local intialization. Once its business is done, there is no need to keep it around
+  // Use this to default DHCP hostname to ESP8266-XXXXXX or ESP32-XXXXXX
+  //ESP_WiFiManager ESP_wifiManager;
+  // Use this to personalize DHCP hostname (RFC952 conformed)
+  ESP_WiFiManager ESP_wifiManager("ConfigOnSwitch");
+
+  ESP_wifiManager.setDebugOutput(true);
+
+  ESP_wifiManager.setMinimumSignalQuality(-1);
+  // Set static IP, Gateway, Subnetmask, DNS1 and DNS2. New in v1.0.5
+  ESP_wifiManager.setSTAStaticIPConfig(stationIP, gatewayIP, netMask, dns1IP, dns2IP);                             
+
+  // We can't use WiFi.SSID() in ESP32as it's only valid after connected.
+  // SSID and Password stored in ESP32 wifi_ap_record_t and wifi_config_t are also cleared in reboot
+  // Have to create a new function to store in EEPROM/SPIFFS for this purpose
+  Router_SSID = ESP_wifiManager.WiFi_SSID();
+  Router_Pass = ESP_wifiManager.WiFi_Pass();
+
+  //Remove this line if you do not want to see WiFi password printed
+  Serial.println("Stored: SSID = " + Router_SSID + ", Pass = " + Router_Pass);
+
+  // SSID to uppercase
+  ssid.toUpperCase();
+
+  if (Router_SSID == "")
+  {
+    Serial.println("We haven't got any access point credentials, so get them now");
+
+    digitalWrite(PIN_LED, LED_ON); // Turn led on as we are in configuration mode.
+
+    //it starts an access point
+    //and goes into a blocking loop awaiting configuration
+    if (!ESP_wifiManager.startConfigPortal((const char *) ssid.c_str(), password))
+      Serial.println("Not connected to WiFi but continuing anyway.");
+    else
+      Serial.println("WiFi connected...yeey :)");
+  }
+
+  digitalWrite(PIN_LED, LED_OFF); // Turn led off as we are not in configuration mode.
+
+  startedAt = millis();
+
+  while ( (WiFi.status() != WL_CONNECTED) && (millis() - startedAt < WIFI_CONNECT_TIMEOUT ) )
+  {
+    WiFi.mode(WIFI_STA);
+    WiFi.persistent (true);
 
     // We start by connecting to a WiFi network
 
-    Serial.println();
-    Serial.println();
     Serial.print("Connecting to ");
-    Serial.println(ssid);
+    Serial.println(Router_SSID);
 
-    WiFi.begin(ssid, password);
+    WiFi.config(stationIP, gatewayIP, netMask);
+    //WiFi.config(stationIP, gatewayIP, netMask, dns1IP, dns2IP);
 
-    while (WiFi.status() != WL_CONNECTED) {
-        delay(500);
-        Serial.print(".");
+    WiFi.begin(Router_SSID.c_str(), Router_Pass.c_str());
+
+    int i = 0;
+    while ((!WiFi.status() || WiFi.status() >= WL_DISCONNECTED) && i++ < WHILE_LOOP_STEPS)
+    {
+      delay(WHILE_LOOP_DELAY);
     }
+  }
 
-    Serial.println("");
-    Serial.println("WiFi connected.");
-    Serial.println("IP address: ");
+  Serial.print("After waiting ");
+  Serial.print((millis() - startedAt) / 1000);
+  Serial.print(" secs more in setup(), connection result is ");
+
+  if (WiFi.status() == WL_CONNECTED)
+  {
+    Serial.print("connected. Local IP: ");
     Serial.println(WiFi.localIP());
-    
-    server.begin();
+  }
+  else
+  {
+    Serial.println(ESP_wifiManager.getStatus(WiFi.status()));
+  }
 
 }
 
-int value = 0;
 
-void loop(){
- WiFiClient client = server.available();   // listen for incoming clients
+void loop()
+{
+  // is configuration portal requested?
+  if ((gFlagTrig1 == HIGH) || (gFlagTrig2 == HIGH))
+  {
+    Serial.println("\nConfiguration portal requested.");
+    digitalWrite(PIN_LED, LED_ON); // turn the LED on by making the voltage LOW to tell us we are in configuration mode.
 
-  if (client) {                             // if you get a client,
-    Serial.println("New Client.");           // print a message out the serial port
-    String currentLine = "";                // make a String to hold incoming data from the client
-    while (client.connected()) {            // loop while the client's connected
-      if (client.available()) {             // if there's bytes to read from the client,
-        char c = client.read();             // read a byte, then
-        Serial.write(c);                    // print it out the serial monitor
-        if (c == '\n') {                    // if the byte is a newline character
+    //Local intialization. Once its business is done, there is no need to keep it around
+    ESP_WiFiManager ESP_wifiManager;
 
-          // if the current line is blank, you got two newline characters in a row.
-          // that's the end of the client HTTP request, so send a response:
-          if (currentLine.length() == 0) {
-            // HTTP headers always start with a response code (e.g. HTTP/1.1 200 OK)
-            // and a content-type so the client knows what's coming, then a blank line:
-            client.println("HTTP/1.1 200 OK");
-            client.println("Content-type:text/html");
-            client.println();
-
-            // the content of the HTTP response follows the header:
-            client.print("Click <a href=\"/H\">here</a> to turn the LED on pin 5 on.<br>");
-            client.print("Click <a href=\"/L\">here</a> to turn the LED on pin 5 off.<br>");
-
-            // The HTTP response ends with another blank line:
-            client.println();
-            // break out of the while loop:
-            break;
-          } else {    // if you got a newline, then clear currentLine:
-            currentLine = "";
-          }
-        } else if (c != '\r') {  // if you got anything else but a carriage return character,
-          currentLine += c;      // add it to the end of the currentLine
-        }
-
-        // Check to see if the client request was "GET /H" or "GET /L":
-        if (currentLine.endsWith("GET /H")) {
-          digitalWrite(5, HIGH);               // GET /H turns the LED on
-        }
-        if (currentLine.endsWith("GET /L")) {
-          digitalWrite(5, LOW);                // GET /L turns the LED off
-        }
-      }
+    //Check if there is stored WiFi router/password credentials.
+    //If not found, device will remain in configuration mode until switched off via webserver.
+    Serial.print("Opening configuration portal. ");
+    Router_SSID = ESP_wifiManager.WiFi_SSID();
+    if (Router_SSID != "")
+    {
+      ESP_wifiManager.setConfigPortalTimeout(60); //If no access point name has been previously entered disable timeout.
+      Serial.println("Got stored Credentials. Timeout 60s");
     }
-    // close the connection:
-    client.stop();
-    Serial.println("Client Disconnected.");
+    else
+      Serial.println("No stored Credentials. No timeout");
+
+    //it starts an access point
+    //and goes into a blocking loop awaiting configuration
+    if (!ESP_wifiManager.startConfigPortal((const char *) ssid.c_str(), password))
+    {
+      Serial.println("Not connected to WiFi but continuing anyway.");
+    }
+    else
+    {
+      //if you get here you have connected to the WiFi
+      Serial.println("connected...yeey :)");
+    }
+
+    gFlagTrig1 = 0;
+    gFlagTrig2 = 0;
+    digitalWrite(PIN_LED, LED_OFF); // Turn led off as we are not in configuration mode.
+  }
+
+  // put your main code here, to run repeatedly
+  check_status();
+  ReadSerialMon();
+  // Call the current pattern function once, updating the 'leds' array
+  gPatterns[gCurrentPatternNumber]();
+
+  // send the 'leds' array out to the actual LED strip
+  FastLED.show();  
+  // insert a delay to keep the framerate modest
+  FastLED.delay(1000/FRAMES_PER_SECOND); 
+
+  // do some periodic updates
+  EVERY_N_MILLISECONDS( 20 ) { gHue++; } // slowly cycle the "base color" through the rainbow
+  EVERY_N_SECONDS( 10 ) { nextPattern(); } // change patterns periodically
+
+}
+
+void heartBeatPrint(void)
+{
+  static int num = 1;
+
+  if (WiFi.status() == WL_CONNECTED)
+  {
+    Serial.print("H");        // H means connected to WiFi
+  }
+  else
+  {
+    Serial.print("F");        // F means not connected to WiFi
+  }
+  if (num == 80)
+  {
+    Serial.println();
+    num = 1;
+  }
+  else if (num++ % 10 == 0)
+  {
+    Serial.print(" ");
+  }
+}
+
+void check_status(void)
+{
+  static ulong checkstatus_timeout = 0;
+
+#define HEARTBEAT_INTERVAL    10000L
+  // Print hearbeat every HEARTBEAT_INTERVAL (10) seconds.
+  if ((millis() > checkstatus_timeout) || (checkstatus_timeout == 0))
+  {
+    heartBeatPrint();
+    checkstatus_timeout = millis() + HEARTBEAT_INTERVAL;
   }
 }
