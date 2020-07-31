@@ -217,3 +217,4 @@ include/README
 .pio/libdeps/esp32doit-devkit-v1/FastLED/platforms/esp/8266/led_sysdefs_esp8266.h
 .pio/build/esp32doit-devkit-v1/longcmd-45be93c710dee2189c81a36d2c38e68d
 .pio/build/esp32doit-devkit-v1/longcmd-abd9e841bfe4bfc1399a13bc0c3c62d7
+.pio/build/esp32doit-devkit-v1/longcmd-31f88eb73a214499d7cccdd8f8cf6bb1
