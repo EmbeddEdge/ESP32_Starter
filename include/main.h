@@ -91,7 +91,7 @@
 #define PIN_SCL           22        // Pin SCL mapped to pin GPIO22/SCL of ESP32
 #define PIN_SDA           21        // Pin SDA mapped to pin GPIO21/SDA of ESP32   
 
-#define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
+//#define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
 
 /* Structures -------------------------------------------------------------*/
 
