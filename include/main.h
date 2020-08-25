@@ -2,14 +2,15 @@
 #define MainModuleH
 
 #include <Arduino.h>
+#include <FreeRTOS.h>
 #include <FastLED.h>
 //Ported to ESP32
 #include <esp_wifi.h>
 #include <WiFi.h>
 #include <WiFiClient.h>
-//#include <WiFiClient.h>  
+#include <HTTPClient.h>
 //#include <WiFiUdp.h>
-//#include <WiFiClientSecure.h>
+#include <WiFiClientSecure.h>
 //#include <NTPClient.h>
 //#include <ArduinoOTA.h>
 //#include <Ticker.h>
@@ -90,11 +91,11 @@
 
 /* Structures -------------------------------------------------------------*/
 
+
 /* ------------------------------------------------------------------------*/
 
 
 /* Enums------------------------------------------*/
-
 
 /* -----------------------------------------------*/
 

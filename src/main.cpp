@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Title                 :   ESP32 WiFi Config
+* Title                 :   ESP32 WiFi Neopixel Controller 
 * Filename              :   main.c
 * Author                :   Turyn Lim Banda
 * Origin Date           :   26/07/2020
@@ -25,6 +25,7 @@
 *
 *    Date    Version  Author           Description 
 *  26/07/20   1.0.0   Turyn Lim Banda  Initial Coding.
+*  31/07/20   1.0.1   Turyn Lim Banda  Control Flow and Feature Establish.
 *
 ****************************************************************************************************/
 
@@ -59,6 +60,9 @@ uint8_t gFlagTrig2 = 0;
 String ssid = "ESP_" + String(ESP_getChipId(), HEX);
 const char* password = "your_password";
 
+const String endpoint = "http://api.openweathermap.org/data/2.5/weather?q=Cape%20Town,za&APPID=";
+const String key = "b2db60f3906cb485bba1d93fe2a17395";
+
 // SSID and PW for your Router
 String Router_SSID;
 String Router_Pass;
@@ -68,6 +72,8 @@ IPAddress gatewayIP   = IPAddress(192, 168, 2, 1);
 IPAddress netMask     = IPAddress(255, 255, 255, 0);
 IPAddress dns1IP      = gatewayIP;
 IPAddress dns2IP      = IPAddress(8, 8, 8, 8);
+
+String g_httpsResponse[10] = {};
 
 // Define the array of leds
 CRGB leds[NUM_LEDS];
@@ -81,6 +87,10 @@ CRGB gBackgroundColor = CRGB::Black;
 
 CRGBPalette16 gCurrentPalette;
 CRGBPalette16 gTargetPalette;
+TBlendType    currentBlending;
+
+extern CRGBPalette16 myRedWhiteBluePalette;
+extern const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM;
 
 uint8_t gCurrentPatternNumber = 0; // Index number of which pattern is current
 uint8_t gHue = 0; // rotating "base color" used by many of the patterns
@@ -90,16 +100,25 @@ void setup()
   // put your setup code here, to run once:
   // initialize the LED digital pin as an output.
   delay(3000); //safety startup delay
+  Serial.begin(115200);
   pinMode(PIN_LED, OUTPUT);
+  digitalWrite(PIN_LED, HIGH);
+  FastLED.setMaxPowerInVoltsAndMilliamps(VOLTS, MAX_MA);
   FastLED.addLeds<LED_TYPE,DATA_PIN>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
   // set master brightness control
   FastLED.setBrightness(BRIGHTNESS);
 
-  setupWiFiConfig();
+  gCurrentPalette = HeatColors_p;
+  currentBlending = NOBLEND;
+
+  //chooseNextColorPalette(gTargetPalette);
+
+  //setupWiFiConfig();
 }
 
 void loop()
 {
+  weather weatherForRGB;
   //Is configuration portal requested?
   requestConfigPortal();
 
@@ -107,16 +126,46 @@ void loop()
   check_status();
   ReadSerialMon();
   
-  // Call the current pattern function once, updating the 'leds' array
-  runPatterns();
+  weatherForRGB = weatherHttpGET(endpoint, key);
+  //delay(10000);
+
+  ChangePalettePeriodically();
+  //ChangePaletteToWeather(weatherForRGB);
+  
+  static uint8_t startIndex = 0;
+  startIndex = startIndex + 1; // motion speed 
+
+  FillLEDsFromPaletteColors(startIndex);
 
   // send the 'leds' array out to the actual LED strip
   FastLED.show();  
   // insert a delay to keep the framerate modest
   FastLED.delay(1000/FRAMES_PER_SECOND); 
-
-  // do some periodic updates
-  EVERY_N_MILLISECONDS( 20 ) { gHue++; } // slowly cycle the "base color" through the rainbow
-  EVERY_N_SECONDS( 10 ) { nextPattern(); } // change patterns periodically
-
+  
 }
+
+// This example shows how to set up a static color palette
+// which is stored in PROGMEM (flash), which is almost always more
+// plentiful than RAM.  A static PROGMEM palette like this
+// takes up 64 bytes of flash.
+const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM =
+{
+    CRGB::Red,
+    CRGB::Gray, // 'white' is too bright compared to red and blue
+    CRGB::Blue,
+    CRGB::Black,
+    
+    CRGB::Red,
+    CRGB::Gray,
+    CRGB::Blue,
+    CRGB::Black,
+    
+    CRGB::Red,
+    CRGB::Red,
+    CRGB::Gray,
+    CRGB::Gray,
+    CRGB::Blue,
+    CRGB::Blue,
+    CRGB::Black,
+    CRGB::Black
+};

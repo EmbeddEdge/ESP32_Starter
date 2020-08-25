@@ -4,6 +4,21 @@
 #define PROMPT  "\r\n> "
 #define ACK     "\r\n>> "
 
+/* Structures -------------------------------------------------------------*/
+typedef struct weathers{
+  float longitude;
+  float latitude;
+  String location;
+  String mainW;
+  String descW;
+  float tempMain;
+  float feelsLike;
+  float tempMin;
+  float tempMax;
+} weather;
+
+/* ------------------------------------------------------------------------*/
+
 // Use from 0 to 4. Higher nimber, more debugging messages and memory usage.
 #define _WIFIMGR_LOGLEVEL_    4
 //For ESP32, To use ESP32 Dev Module, QIO, Flash 4MB/80MHz, Upload 921600
@@ -24,5 +39,7 @@ void check_status(void);
 //RGB Pattern Functions
 void setupWiFiConfig(void);
 void requestConfigPortal(void);
+weather weatherHttpGET(String, String);
+weather parseWeatherData(String);
 
 #endif
