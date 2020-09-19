@@ -31,5 +31,6 @@ void ChangePalettePeriodically(void);
 void SetupTotallyRandomPalette(void);
 void SetupBlackAndWhiteStripedPalette(void);
 void SetupPurpleAndGreenPalette(void);
+void no_wifi_rgb(void);
 
 #endif

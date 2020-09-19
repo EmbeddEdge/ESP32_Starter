@@ -14,7 +14,7 @@ void PrintWelcomeMsg(String version)
     //SerialMon.print(F("\033[0;0H"));
     //SerialMon.print(F("\033[2J"));
     SerialMon.print(F(BANNER));
-    SerialMon.print(F("\tIoT Fingerprint Device Console\n\r"));
+    SerialMon.print(F("\tWiFi RGB Strip Device Console\n\r"));
     SerialMon.print(F("\tVersion "));
     SerialMon.print(version);
     SerialMon.print(F("\tFor list of available commands type '-h' or 'help'\r\n"));

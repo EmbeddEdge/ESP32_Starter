@@ -226,3 +226,5 @@ include/README
 .pio/build/esp32doit-devkit-v1/longcmd-f0d971c915fbfdcb02cc9fe45fda789e
 .pio/build/esp32doit-devkit-v1/longcmd-f3f0880f209c2469894189d75034546b
 .pio/build/esp32doit-devkit-v1/longcmd-f6ba59415fa6d799d0fb4609275ed548
+.pio/build/esp32doit-devkit-v1/longcmd-2041f66fbea40fcf926da7b26f081861
+.pio/build/esp32doit-devkit-v1/.sconsign37.dblite

@@ -49,6 +49,7 @@ FASTLED_USING_NAMESPACE
 /******************************************************************************
 * Module Typedefs
 *******************************************************************************/
+EnumMode_t     g_enum_action_mode;
 
 /******************************************************************************
 * Module Variable Definitions
@@ -89,20 +90,19 @@ CRGBPalette16 gCurrentPalette;
 CRGBPalette16 gTargetPalette;
 TBlendType    currentBlending;
 
-extern CRGBPalette16 myRedWhiteBluePalette;
-extern const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM;
-
 uint8_t gCurrentPatternNumber = 0; // Index number of which pattern is current
 uint8_t gHue = 0; // rotating "base color" used by many of the patterns
+uint16_t g_frames_per_second = 100;
 
 void setup()
 {
-  // put your setup code here, to run once:
-  // initialize the LED digital pin as an output.
   delay(3000); //safety startup delay
-  Serial.begin(115200);
+  //Configure the Serial Output
+  SerialMon.begin(38400);
+  // initialize the LED digital pin as an output.
   pinMode(PIN_LED, OUTPUT);
   digitalWrite(PIN_LED, HIGH);
+  //Setup the RGB strip
   FastLED.setMaxPowerInVoltsAndMilliamps(VOLTS, MAX_MA);
   FastLED.addLeds<LED_TYPE,DATA_PIN>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
   // set master brightness control
@@ -110,6 +110,7 @@ void setup()
 
   gCurrentPalette = HeatColors_p;
   currentBlending = NOBLEND;
+  SerialMon.print(F("\tDevice Startup\n\r"));
 
   //chooseNextColorPalette(gTargetPalette);
 
@@ -118,54 +119,74 @@ void setup()
 
 void loop()
 {
-  weather weatherForRGB;
-  //Is configuration portal requested?
-  requestConfigPortal();
-
-  // put your main code here, to run repeatedly
+  //Do the initial checks i.e. is WiFi Connected? Is there serial data?
+  requestConfigPortal();  //Is configuration portal requested?
   check_status();
-  ReadSerialMon();
-  
-  weatherForRGB = weatherHttpGET(endpoint, key);
-  //delay(10000);
+  ReadSerialMon();        //Read the serial line if anything is there
 
-  ChangePalettePeriodically();
-  //ChangePaletteToWeather(weatherForRGB);
+  //Check the current mode of operation and set the RGB settings accordingly
+  user_mode_set();
   
+  //Display the RGB strip based the up-to-date settings
   static uint8_t startIndex = 0;
   startIndex = startIndex + 1; // motion speed 
+  //SerialMon.println(startIndex);
 
   FillLEDsFromPaletteColors(startIndex);
 
   // send the 'leds' array out to the actual LED strip
   FastLED.show();  
   // insert a delay to keep the framerate modest
-  FastLED.delay(1000/FRAMES_PER_SECOND); 
+  FastLED.delay(1000/g_frames_per_second); 
   
 }
 
-// This example shows how to set up a static color palette
-// which is stored in PROGMEM (flash), which is almost always more
-// plentiful than RAM.  A static PROGMEM palette like this
-// takes up 64 bytes of flash.
-const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM =
+/****************user_mode_set************************************************************             
+Set the mode of operation for the Light setting control based on what is decided by 
+the user and also the current WiFi Status
+Input:  N/A
+Output: N/A
+*/ 
+void user_mode_set(void)
 {
-    CRGB::Red,
-    CRGB::Gray, // 'white' is too bright compared to red and blue
-    CRGB::Blue,
-    CRGB::Black,
-    
-    CRGB::Red,
-    CRGB::Gray,
-    CRGB::Blue,
-    CRGB::Black,
-    
-    CRGB::Red,
-    CRGB::Red,
-    CRGB::Gray,
-    CRGB::Gray,
-    CRGB::Blue,
-    CRGB::Blue,
-    CRGB::Black,
-    CRGB::Black
-};
+  switch(g_enum_action_mode)
+  {
+    case MODE_DEFAULT:
+    {
+      //This mode comes on if there is no WiFi connection and no other user modes have been requested
+      if(WiFi.status() != WL_CONNECTED)
+      {
+        //Set up a regular pallette
+        //Rapid blinks for no WiFi
+        no_wifi_rgb();
+      }
+      else
+      {
+        g_enum_action_mode = MODE_WIFI_WEATHER;
+      }
+    }
+    break;
+    case MODE_WIFI_WEATHER:
+    {
+      if(WiFi.status() != WL_CONNECTED)
+      {
+        g_enum_action_mode = MODE_DEFAULT;
+      }
+      weather weatherForRGB;
+      //Fetch weather data on a timed interval
+      weatherForRGB = weatherHttpGET(endpoint, key);
+
+      //Update the RGB settings based on input data
+      //ChangePalettePeriodically();
+      ChangePaletteToWeather(weatherForRGB);
+    }
+    break;
+    case MODE_MOOD: 
+    {
+      //Setup Mood Lights
+    }
+    break; 
+    default:
+    break;
+  }
+}

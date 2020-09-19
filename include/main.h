@@ -96,6 +96,12 @@
 
 
 /* Enums------------------------------------------*/
+typedef enum
+{ // Procedures
+  MODE_DEFAULT, 
+  MODE_WIFI_WEATHER,   
+  MODE_MOOD,                
+} EnumMode_t;
 
 /* -----------------------------------------------*/
 
@@ -114,6 +120,7 @@ void confetti(void);
 void sinelon(void);
 void bpm(void);
 void juggle(void);
+void user_mode_set(void);
 
 //Date Time Functions and ISRs
 
