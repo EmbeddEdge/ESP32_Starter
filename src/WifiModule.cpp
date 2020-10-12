@@ -30,7 +30,7 @@ Setup the WiFi state
 */
 void setupWiFiConfig()
 {
-  Serial.println("\nStarting");
+    Serial.println("\nStarting");
 
   unsigned long startedAt = millis();
 
@@ -123,7 +123,7 @@ void requestConfigPortal()
 {
   if ((gFlagTrig1 == HIGH) || (gFlagTrig2 == HIGH))
   {
-    Serial.println("\nConfiguration portal requested.");
+    SerialMon.println("\nConfiguration portal requested.");
     digitalWrite(PIN_LED, LED_ON); // turn the LED on by making the voltage LOW to tell us we are in configuration mode.
 
     //Local intialization. Once its business is done, there is no need to keep it around
@@ -131,26 +131,26 @@ void requestConfigPortal()
 
     //Check if there is stored WiFi router/password credentials.
     //If not found, device will remain in configuration mode until switched off via webserver.
-    Serial.print("Opening configuration portal. ");
+    SerialMon.print("Opening configuration portal. ");
     Router_SSID = ESP_wifiManager.WiFi_SSID();
     if (Router_SSID != "")
     {
       ESP_wifiManager.setConfigPortalTimeout(60); //If no access point name has been previously entered disable timeout.
-      Serial.println("Got stored Credentials. Timeout 60s");
+      SerialMon.println("Got stored Credentials. Timeout 60s");
     }
     else
-      Serial.println("No stored Credentials. No timeout");
+      SerialMon.println("No stored Credentials. No timeout");
 
     //it starts an access point
     //and goes into a blocking loop awaiting configuration
     if (!ESP_wifiManager.startConfigPortal((const char *) ssid.c_str(), password))
     {
-      Serial.println("Not connected to WiFi but continuing anyway.");
+      SerialMon.println("Not connected to WiFi but continuing anyway.");
     }
     else
     {
       //if you get here you have connected to the WiFi
-      Serial.println("connected...yeey :)");
+      SerialMon.println("connected...yeey :)");
     }
 
     gFlagTrig1 = 0;
@@ -162,13 +162,20 @@ void requestConfigPortal()
 /* **************weatherHttpGET******************************************************
 Fetch Weather Data periodically 
 */
-weather weatherHttpGET(String p_endpoint, String p_key)
+void weatherHttpGET(String p_endpoint, String p_key, weather *payloadWeather)
 {
-  weather payloadWeather;
-  uint16_t currentMillis = millis();
-  uint16_t interval = 30000;
-  static uint16_t previousMillis = currentMillis;
-
+  //weather payloadWeather;
+  unsigned long currentMillis = millis();
+  uint16_t interval = 30000; //30 seconds
+  static unsigned long previousMillis = currentMillis;
+/*
+  SerialMon.print("Current Time: ");
+  SerialMon.println(currentMillis);
+  SerialMon.print("Saved Time: ");
+  SerialMon.println(previousMillis);
+  SerialMon.print("Diff Time: ");
+  SerialMon.println(currentMillis - previousMillis);
+*/
   if(currentMillis - previousMillis >= interval)
   {
     previousMillis = currentMillis;
@@ -177,112 +184,51 @@ weather weatherHttpGET(String p_endpoint, String p_key)
       HTTPClient http;
 
       http.begin(p_endpoint + p_key);
-      Serial.println(p_endpoint+p_key);
-      Serial.println(p_endpoint);
+      SerialMon.println(p_endpoint+p_key);
+      SerialMon.println(p_endpoint);
     
       int httpCode = http.GET();
-      Serial.print("HTTP GET return code: ");
-      Serial.println(httpCode);
+      SerialMon.print("HTTP GET return code: ");
+      SerialMon.println(httpCode);
     
       if (httpCode > 0) 
       { //Check for the returning code
         String payload = http.getString();
         //Stream *payload;
         //http.writeToStream(&payload);
-        payloadWeather = parseWeatherData(payload);
+        parseWeatherData(payload, payloadWeather);
         //Debug
-        Serial.println(payload);
-        Serial.println();
+        SerialMon.println(payload);
+        SerialMon.println();
         SerialMon.print(F("\rWeather longitude: "));
-        Serial.println(payloadWeather.longitude);
+        SerialMon.println(payloadWeather->longitude);
         SerialMon.print(F("\rWeather latitude: "));
-        Serial.println(payloadWeather.latitude);
+        SerialMon.println(payloadWeather->latitude);
         SerialMon.print(F("\rWeather location: "));
-        Serial.println(payloadWeather.location);
+        SerialMon.println(payloadWeather->location);
         SerialMon.print(F("\rWeather Main Description: "));
-        Serial.println(payloadWeather.mainW);
+        SerialMon.println(payloadWeather->mainW);
         SerialMon.print(F("\rWeather Aux Description: "));
-        Serial.println(payloadWeather.descW);
+        SerialMon.println(payloadWeather->descW);
         SerialMon.print(F("\rWeather Temperature: "));
-        Serial.println(payloadWeather.tempMain);
+        SerialMon.println(payloadWeather->tempMain);
         SerialMon.print(F("\rWeather Temperature FeelsLike: "));
-        Serial.println(payloadWeather.feelsLike);
+        SerialMon.println(payloadWeather->feelsLike);
         SerialMon.print(F("\rWeather Temperature Min: "));
-        Serial.println(payloadWeather.tempMin);
+        SerialMon.println(payloadWeather->tempMin);
         SerialMon.print(F("\rWeather Temperature Max: "));
-        Serial.println(payloadWeather.tempMax);
+        SerialMon.println(payloadWeather->tempMax);
       }
       else 
       {
-        Serial.println("Error on HTTP request");
+        SerialMon.println("Error on HTTP request");
       }
     
       http.end();
     }
 
   }  
-
-/*
-  const int httpsPort = 443;
-
-
-  Serial.println(p_endpoint);
- 
-  httpsClient.setTimeout(15000); // 15 Seconds
-  delay(1000);
-  
-  Serial.println();
-  Serial.println("HTTPS Connecting");
-  int r=0; //retry counter
-  while((!httpsClient.connect(p_endpoint, httpsPort)) && (r < 30))
-  {
-      delay(100);
-      Serial.print(".");
-      r++;
-  }
-  if(r==30) 
-  {
-    Serial.println("Connection failed");
-    return -1;
-  }
-  else 
-  {
-    Serial.println("Connected to web");
-  }
- 
-  Serial.print("requesting URL: ");
-  Serial.println(p_endpoint+url);
- 
-  httpsClient.print(String("GET ") + url + " HTTP/1.1\r\n" +
-               "p_endpoint: " + p_endpoint + "\r\n" +               
-               "Connection: close\r\n\r\n");
- 
-  Serial.println("request sent");
-                  
-  while (httpsClient.connected()) {
-    String line = httpsClient.readStringUntil('\n');
-    if (line == "\r") {
-      Serial.println("headers received");
-      break;
-    }
-  }
- 
-  Serial.println("reply was:");
-  Serial.println("==========");
-  String line;
-  int lineIndex = 0;
-  while(httpsClient.available()){   
-    g_httpsResponse[lineIndex] = httpsClient.readStringUntil('\n');      
-    //line = httpsClient.readStringUntil('\n');  //Read Line by Line
-    Serial.println(g_httpsResponse[lineIndex]); //Print response
-    //Serial.println(line); //Print response
-    lineIndex++;
-  }
-  Serial.println("==========");
-  Serial.println("closing connection");
-*/
-  return payloadWeather;
-  
+  //return payloadWeather;
 }
 
 void heartBeatPrint(void)
@@ -291,24 +237,24 @@ void heartBeatPrint(void)
 
   if (WiFi.status() == WL_CONNECTED)
   {
-    Serial.print("H");        // H means connected to WiFi
+    SerialMon.print("H");        // H means connected to WiFi
   }
   else
   {
-    Serial.print("F");        // F means not connected to WiFi
+    SerialMon.print("F");        // F means not connected to WiFi
   }
   if (num == 80)
   {
-    Serial.println();
+    SerialMon.println();
     num = 1;
   }
   else if (num++ % 10 == 0)
   {
-    Serial.print(" ");
+    SerialMon.print(" ");
   }
 }
 
-void check_status(void)
+void checkStatusWifi(void)
 {
   static ulong checkstatus_timeout = 0;
 
@@ -321,39 +267,39 @@ void check_status(void)
   }
 }
 
-weather parseWeatherData(String p_payload)
+void parseWeatherData(String p_payload, weather *myWeather)
 {
-  weather myWeather;
+  //weather* myWeather;
   //First find and populate the longitude value
   int firstColon = p_payload.indexOf(':');
   int secondColon = p_payload.indexOf(':', firstColon+1);
   int firstComma = p_payload.indexOf(',');
   String sLongitude = p_payload.substring(secondColon+1, firstComma);
-  myWeather.longitude = sLongitude.toFloat();
+  myWeather->longitude = sLongitude.toFloat();
 
   //Next find and populate the latitude value
   int thirdColon = p_payload.indexOf(':', secondColon+1);
   int firstCloseBrak = p_payload.indexOf('}', thirdColon+1);
   String sLatitude = p_payload.substring(thirdColon+1, firstCloseBrak);
-  myWeather.latitude = sLatitude.toFloat();
+  myWeather->latitude = sLatitude.toFloat();
 
   //Next find and populate the location/city name
   int lastComma = p_payload.lastIndexOf(',');
   int fourthLastQt = p_payload.lastIndexOf('"', lastComma-2); //-2 because of the " before the comma
-  myWeather.location = p_payload.substring(fourthLastQt+1, lastComma-1);
+  myWeather->location = p_payload.substring(fourthLastQt+1, lastComma-1);
 
   //Next find and populate the main description of the Weather
   int firstM = p_payload.indexOf('m');
   int thirtnthQt = p_payload.indexOf('"',firstM+5); //+5 because of " at the end of "main"
   int fourtnthQt = p_payload.indexOf('"',thirtnthQt+1); 
-  myWeather.mainW = p_payload.substring(thirtnthQt+1, fourtnthQt);
+  myWeather->mainW = p_payload.substring(thirtnthQt+1, fourtnthQt);
 
   //Next find and populate the secondary description of the Weather
   int fiftnthQt = p_payload.indexOf('"',fourtnthQt+1); 
   int sixtnthQt = p_payload.indexOf('"',fiftnthQt+1); 
   int sevntnthQt = p_payload.indexOf('"',sixtnthQt+1); 
   int eightnthQt = p_payload.indexOf('"',sevntnthQt+1); 
-  myWeather.descW = p_payload.substring(sevntnthQt+1, eightnthQt);
+  myWeather->descW = p_payload.substring(sevntnthQt+1, eightnthQt);
 
   //Next find and populate the main temperature value
   int destinationColon = 11;
@@ -365,10 +311,10 @@ weather parseWeatherData(String p_payload)
     endSub = p_payload.indexOf(',',startSub+1); 
     colonCount++;
     //SerialMon.print(F("\rMain Temp Find: "));
-    //Serial.println(p_payload.substring(startSub+1, endSub));
+    //SerialMon.println(p_payload.substring(startSub+1, endSub));
   }
   String sTempMain = p_payload.substring(startSub+1, endSub);
-  myWeather.tempMain = sTempMain.toFloat();
+  myWeather->tempMain = sTempMain.toFloat();
 
   //Next find and populate the aux temperature value
   int destinationColon2 = 12;
@@ -381,7 +327,7 @@ weather parseWeatherData(String p_payload)
     colonCount2++;
   }
   String sTempAux = p_payload.substring(startSub2+1, endSub2);
-  myWeather.feelsLike = sTempAux.toFloat();
+  myWeather->feelsLike = sTempAux.toFloat();
 
   //Next find and populate the min temperature value
   int destinationColon3 = 13;
@@ -394,7 +340,7 @@ weather parseWeatherData(String p_payload)
     colonCount3++;
   }
   String sTempMin = p_payload.substring(startSub3+1, endSub3);
-  myWeather.tempMin = sTempMin.toFloat();
+  myWeather->tempMin = sTempMin.toFloat();
 
   //Next find and populate the max temperature value
   int destinationColon4 = 14;
@@ -407,9 +353,7 @@ weather parseWeatherData(String p_payload)
     colonCount4++;
   }
   String sTempMax = p_payload.substring(startSub4+1, endSub4);
-  myWeather.tempMax = sTempMax.toFloat();
+  myWeather->tempMax = sTempMax.toFloat();
 
-  //Finally return the weather data
-  return myWeather;
 }
 

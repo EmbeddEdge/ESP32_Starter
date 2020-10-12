@@ -34,22 +34,37 @@ void FillLEDsFromPaletteColors(uint8_t colorIndex)
     }
 }
 
-void ChangePaletteToWeather(weather p_weather)
+void ChangePaletteToWeather(weather* p_weather)
 {
     //Change the pallette according to Main Description
-    if(p_weather.mainW = "Clouds")
+    if(p_weather->mainW == "Clouds")
     {
+        //SerialMon.print(F("Changing to Clouds\n\r"));
         gCurrentPalette = CloudColors_p;
         currentBlending = LINEARBLEND;
     }
-    else if (p_weather.mainW = "Sun")
+    else if(p_weather->mainW == "Sun")
     {
+        //SerialMon.print(F("Changing to Sun\n\r"));
+        gCurrentPalette = HeatColors_p;
+        currentBlending = NOBLEND;
+    }
+    else if(p_weather->mainW == "Rain")
+    {
+        //SerialMon.print(F("Changing to Rain\n\r"));
         gCurrentPalette = LavaColors_p;
         currentBlending = NOBLEND;
     }
-    else if (p_weather.mainW = "Clear")
+    else if(p_weather->mainW == "Clear")
     {
+        //SerialMon.print(F("Changing to Clear\n\r"));
         gCurrentPalette = ForestColors_p;
+        currentBlending = NOBLEND;
+    }
+    else if(p_weather->mainW == "Mist")
+    {
+        //SerialMon.print(F("Changing to Mist\n\r"));
+        gCurrentPalette = OceanColors_p;
         currentBlending = NOBLEND;
     }
     else
@@ -57,7 +72,8 @@ void ChangePaletteToWeather(weather p_weather)
         gCurrentPalette = PartyColors_p;
         currentBlending = NOBLEND;
     }
-
+    //SerialMon.print(F("Main Weather setting: "));
+    //SerialMon.println(p_weather.mainW);
     //Change the hue according to temperature
 
     //Change the speed according to pressure?
@@ -160,13 +176,14 @@ const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM =
 void no_wifi_rgb(void)
 {
     CRGB mycolor = CHSV( HUE_PURPLE, 255, 255);
+    CRGB mycolor2 = CHSV( HUE_ORANGE, 255, 255);
     CRGB black  = CRGB::Black;
 
     gCurrentPalette = CRGBPalette16(
                                    mycolor, mycolor, black,  black,
+                                   mycolor2, mycolor2, black,  black,
                                    mycolor, mycolor, black,  black,
-                                   mycolor, mycolor, black,  black,
-                                   mycolor, mycolor, black,  black );
+                                   mycolor2, mycolor2, black,  black );
 
 
     /*  
@@ -180,3 +197,30 @@ void no_wifi_rgb(void)
     currentBlending = NOBLEND;
 }
 
+void FadeInOut(CRGB::HTMLColorCode Color, uint8_t pIndex)
+{
+    uint16_t red = (Color >> 16) & 0xff;
+    uint16_t green = (Color >> 8) & 0xff; 
+    uint16_t blue = Color & 0xff;
+
+    float r = (pIndex/256.0)*red;
+    float g = (pIndex/256.0)*green;
+    float b = (pIndex/256.0)*blue;
+        
+    setAll(r,g,b);
+}
+
+void setAll(byte red, byte green, byte blue) 
+{
+  for(int i = 0; i < NUM_LEDS; i++ ) {
+    setPixel(i, red, green, blue); 
+  }
+}
+
+void setPixel(int Pixel, byte red, byte green, byte blue) 
+{
+   // FastLED
+   leds[Pixel].r = red;
+   leds[Pixel].g = green;
+   leds[Pixel].b = blue;
+}

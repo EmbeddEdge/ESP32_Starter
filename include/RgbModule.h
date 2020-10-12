@@ -26,11 +26,14 @@
 
 //RGB Pattern Functions
 void FillLEDsFromPaletteColors(uint8_t);
-void ChangePaletteToWeather(weather);
+void ChangePaletteToWeather(weather*);
 void ChangePalettePeriodically(void);
 void SetupTotallyRandomPalette(void);
 void SetupBlackAndWhiteStripedPalette(void);
 void SetupPurpleAndGreenPalette(void);
 void no_wifi_rgb(void);
+void FadeInOut(CRGB::HTMLColorCode, uint8_t);
+void setAll(byte, byte, byte); 
+void setPixel(int, byte, byte, byte); 
 
 #endif

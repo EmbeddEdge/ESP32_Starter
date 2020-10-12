@@ -34,12 +34,12 @@ typedef struct weathers{
 
 //Debug Functions
 void heartBeatPrint(void);
-void check_status(void);
+void checkStatusWifi(void);
 
 //RGB Pattern Functions
 void setupWiFiConfig(void);
 void requestConfigPortal(void);
-weather weatherHttpGET(String, String);
-weather parseWeatherData(String);
+void weatherHttpGET(String, String, weather*);
+void parseWeatherData(String, weather*);
 
 #endif

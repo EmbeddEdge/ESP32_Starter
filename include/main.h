@@ -103,6 +103,19 @@ typedef enum
   MODE_MOOD,                
 } EnumMode_t;
 
+typedef enum
+{ // Procedures
+  EP_CT, 
+  EP_PE,   
+  EP_DB,
+  EP_JB,  
+  EP_PA,
+  EP_DP,
+  EP_KS,
+  EP_VA,
+  EP_PH,
+  EP_LM,                
+} EnumEndpoint_t;
 /* -----------------------------------------------*/
 
 /* Function Prototypes -------------------------------------*/
@@ -121,6 +134,8 @@ void sinelon(void);
 void bpm(void);
 void juggle(void);
 void user_mode_set(void);
+uint8_t upDownCounterInt(void);
+void endpoint_mode_set(void);
 
 //Date Time Functions and ISRs
 

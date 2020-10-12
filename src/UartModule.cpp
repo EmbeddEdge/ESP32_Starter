@@ -1,8 +1,13 @@
 #include <Arduino.h>
+#include "main.h"
 #include "UartModule.h"
 
 extern uint8_t gFlagTrig1;
 extern uint8_t gFlagTrig2; 
+extern EnumMode_t  g_enum_action_mode;
+extern uint16_t g_frames_per_second;
+extern EnumEndpoint_t g_enum_endpoint;
+extern weather weatherForRGB;
 const int g_buf_index = 30;
 char    g_buf_serialmon[g_buf_index];
 
@@ -40,8 +45,8 @@ void PrintHelpMsg()
 }
 
 /* **************ReadSerialMon************************************
-Read the CLI Serial command, periodically check the serial 
-on a timer interrupt and fills a buffer. Once the terminating
+Read the CLI Serial command, periodically checks the serial
+input and fills a buffer. Once the terminating
 characters are found the buffer is sent for processing in 
 another function and then cleared
 Input:  N/A
@@ -90,8 +95,89 @@ void ProcessCmd(char* p_Command)
     }
     else if(strcmp(userCMD , "B2\r\n")==0 || strcmp(userCMD , "b2\r\n")==0)
     {
-      gFlagTrig2 = 1;
+      //gFlagTrig2 = 1;
+      //g_enum_action_mode = MODE_MOOD;
       SerialMon.print(F("Simulation Button 2 Pressed\n\r"));
+    }
+    else if(strcmp(userCMD , "D\r\n")==0 || strcmp(userCMD , "d\r\n")==0)
+    {
+      g_enum_action_mode = MODE_DEFAULT;
+    }
+    else if(strcmp(userCMD , "W\r\n")==0 || strcmp(userCMD , "w\r\n")==0)
+    {
+      g_enum_action_mode = MODE_WIFI_WEATHER;
+    }
+    else if(strcmp(userCMD , "M\r\n")==0 || strcmp(userCMD , "m\r\n")==0)
+    {
+      g_enum_action_mode = MODE_MOOD;
+    }
+    else if(strcmp(userCMD , "Speed")==0 || strcmp(userCMD , "speed")==0)
+    {
+      uint8_t count = 0;
+      while (userCMD != NULL)
+      {
+        if (count == 1) 
+        {
+          uint16_t speed = atol(userCMD);
+          g_frames_per_second = speed;
+        }
+        userCMD = strtok(NULL, " ");  //Go to next string in command buffer
+        ++count;
+      }
+    }
+    else if(strcmp(userCMD , "CT\r\n")==0 || strcmp(userCMD , "ct\r\n")==0)
+    {
+      SerialMon.print(F("Changing to Cape Town\n\r"));
+      g_enum_endpoint = EP_CT;
+    }
+    else if(strcmp(userCMD , "PE\r\n")==0 || strcmp(userCMD , "pe\r\n")==0)
+    {
+      SerialMon.print(F("Changing to Port Elizabeth\n\r"));
+      g_enum_endpoint = EP_PE;
+    }
+    else if(strcmp(userCMD , "DB\r\n")==0 || strcmp(userCMD , "db\r\n")==0)
+    {
+      SerialMon.print(F("Changing to Durban\n\r"));
+      g_enum_endpoint = EP_DB;
+    }
+    else if(strcmp(userCMD , "JB\r\n")==0 || strcmp(userCMD , "jb\r\n")==0)
+    {
+      SerialMon.print(F("Changing to Johannesburg\n\r"));
+      g_enum_endpoint = EP_JB;
+    }
+    else if(strcmp(userCMD , "PA\r\n")==0 || strcmp(userCMD , "pa\r\n")==0)
+    {
+      g_enum_endpoint = EP_PA;
+    }
+    else if(strcmp(userCMD , "DP\r\n")==0 || strcmp(userCMD , "dp\r\n")==0)
+    {
+      SerialMon.print(F("Changing to Deputatsky\n\r"));
+      g_enum_endpoint = EP_DP;
+    }
+    else if(strcmp(userCMD , "KS\r\n")==0 || strcmp(userCMD , "ks\r\n")==0)
+    {
+      SerialMon.print(F("Changing to Kinshasa\n\r"));
+      g_enum_endpoint = EP_KS;
+    }
+    else if(strcmp(userCMD , "VA\r\n")==0 || strcmp(userCMD , "va\r\n")==0)
+    {
+      SerialMon.print(F("Changing to Vancouver\n\r"));
+      g_enum_endpoint = EP_VA;
+    }
+    else if(strcmp(userCMD , "PH\r\n")==0 || strcmp(userCMD , "ph\r\n")==0)
+    {
+      SerialMon.print(F("Changing to Perth\n\r"));
+      g_enum_endpoint = EP_PH;
+    }
+    else if(strcmp(userCMD , "LM\r\n")==0 || strcmp(userCMD , "lm\r\n")==0)
+    {
+      SerialMon.print(F("Changing to Lima\n\r"));
+      g_enum_endpoint = EP_LM;
+    }
+    else if(strcmp(userCMD , "Print\r\n")==0 || strcmp(userCMD , "print\r\n")==0)
+    {
+      SerialMon.print(F("Main Weather setting now: "));
+      SerialMon.println(weatherForRGB.mainW);
     }
     else if(strcmp(userCMD , "CommWithPar")==0 || strcmp(userCMD , "CommWithPar")==0)
     {
