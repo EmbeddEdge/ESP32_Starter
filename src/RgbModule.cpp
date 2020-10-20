@@ -2,6 +2,145 @@
 #include "RgbModule.h"
 #include "main.h"
 
+// Gradient palette "wiki_ice_greenland_gp", originally from
+// http://soliton.vm.bytemark.co.uk/pub/cpt-city/wkp/ice/tn/wiki-ice-greenland.png.index.html
+// converted for FastLED with gammas (2.6, 2.2, 2.5)
+// Size: 48 bytes of program space.
+
+DEFINE_GRADIENT_PALETTE( wiki_ice_greenland_gp ) {
+    0, 234,250,252,
+   79, 234,250,252,
+   79, 222,239,237,
+  118, 222,239,237,
+  118, 192,223,223,
+  158, 192,223,223,
+  158, 167,205,203,
+  198, 167,205,203,
+  198, 148,193,192,
+  238, 148,193,192,
+  238, 126,182,182,
+  255, 126,182,182};
+
+// Gradient palette "white_christmas_gp", originally from
+// http://soliton.vm.bytemark.co.uk/pub/cpt-city/ncdc/tn/white-christmas.png.index.html
+// converted for FastLED with gammas (2.6, 2.2, 2.5)
+// Size: 72 bytes of program space.
+
+DEFINE_GRADIENT_PALETTE( white_christmas_gp ) {
+    0, 117, 97, 49,
+   12, 117, 97, 49,
+   12,  26,173,106,
+   25,  26,173,106,
+   25,  10, 77,164,
+   63,  10, 77,164,
+   63,   0, 21, 85,
+  102,   0, 21, 85,
+  102,  53, 86,135,
+  127,  53, 86,135,
+  127,  26, 31, 65,
+  153,  26, 31, 65,
+  153,  61, 31, 96,
+  191,  61, 31, 96,
+  191,  82, 97, 85,
+  229,  82, 97, 85,
+  229, 255,255,255,
+  255, 255,255,255};
+
+  // Gradient palette "solar_gp", originally from
+// http://soliton.vm.bytemark.co.uk/pub/cpt-city/cmocean/tn/solar.png.index.html
+// converted for FastLED with gammas (2.6, 2.2, 2.5)
+// Size: 2048 bytes of program space.
+
+DEFINE_GRADIENT_PALETTE( solar_gp ) {
+    0,   3,  1,  1,
+    0,   3,  1,  1,
+    0,   4,  1,  1,
+    1,   4,  1,  1,
+    1,   4,  1,  1,
+    2,   4,  1,  1,
+    2,   4,  1,  1,
+    3,   4,  1,  1,
+    3,   4,  1,  1,
+    4,   4,  1,  1,
+    4,   5,  1,  1,
+    5,   5,  1,  1,
+    5,   5,  1,  1,
+    6,   5,  1,  1,
+    6,   5,  1,  1,
+    7,   5,  1,  1,
+    7,   6,  1,  1,
+    8,   6,  1,  1,
+    8,   6,  1,  1,
+    9,   6,  1,  1,
+    9,   7,  1,  1,
+   10,   7,  1,  1,
+   10,   7,  1,  1,
+   11,   7,  1,  1,
+   11,   7,  1,  1,
+   12,   7,  1,  1,
+   12,   7,  1,  1,
+   13,   7,  1,  1,
+   13,   8,  1,  1,
+   14,   8,  1,  1,
+   14,   8,  1,  1,
+   15,   8,  1,  1,
+   15,   9,  1,  1,
+   16,   9,  1,  1,
+   16,   9,  1,  1,
+   17,   9,  1,  1,
+   17,  10,  1,  1,
+   30, 177,186,  6,
+  231, 177,186,  6,
+  231, 177,187,  6,
+  232, 177,187,  6,
+  232, 177,189,  6,
+  233, 177,189,  6,
+  233, 179,193,  7,
+  234, 179,193,  7,
+  234, 179,195,  7,
+  235, 179,195,  7,
+  235, 179,197,  7,
+  236, 179,197,  7,
+  236, 179,201,  7,
+  237, 179,201,  7,
+  237, 179,203,  7,
+  238, 179,203,  7,
+  238, 179,205,  8,
+  239, 179,205,  8,
+  239, 179,209,  8,
+  240, 179,209,  8,
+  240, 182,211,  8,
+  241, 182,211,  8,
+  241, 182,213,  8,
+  242, 182,213,  8,
+  242, 182,217,  9,
+  243, 182,217,  9,
+  243, 182,219,  9,
+  244, 182,219,  9,
+  244, 182,223,  9,
+  245, 182,223,  9,
+  245, 182,225,  9,
+  246, 182,225,  9,
+  246, 182,227,  9,
+  247, 182,227,  9,
+  247, 182,231, 10,
+  248, 182,231, 10,
+  248, 182,233, 10,
+  249, 182,233, 10,
+  249, 182,235, 10,
+  250, 182,235, 10,
+  250, 182,239, 10,
+  251, 182,239, 10,
+  251, 182,241, 11,
+  252, 182,241, 11,
+  252, 182,246, 11,
+  253, 182,246, 11,
+  253, 184,248, 11,
+  254, 184,248, 11,
+  254, 184,250, 11,
+  255, 184,250, 11};
+
+
 // Define the array of leds
 extern CRGB leds[NUM_LEDS];
 extern CRGBArray<NUM_LEDS> ledsTF;
@@ -17,6 +156,9 @@ extern uint16_t g_frames_per_second;
 
 extern CRGBPalette16 myRedWhiteBluePalette;
 extern const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM;
+extern const TProgmemPalette16 myOceanPalette_p PROGMEM;
+extern const TProgmemPalette16 myCloudPalette_p PROGMEM;
+CRGBPalette16 myCloudPalette_gp = white_christmas_gp;
 
 bool gReverseDirection = false;
 
@@ -46,13 +188,13 @@ void ChangePaletteToWeather(weather* p_weather)
     else if(p_weather->mainW == "Sun")
     {
         //SerialMon.print(F("Changing to Sun\n\r"));
-        gCurrentPalette = HeatColors_p;
+        gCurrentPalette = LavaColors_p;
         currentBlending = NOBLEND;
     }
     else if(p_weather->mainW == "Rain")
     {
         //SerialMon.print(F("Changing to Rain\n\r"));
-        gCurrentPalette = LavaColors_p;
+        gCurrentPalette = OceanColors_p;
         currentBlending = NOBLEND;
     }
     else if(p_weather->mainW == "Clear")
@@ -64,7 +206,7 @@ void ChangePaletteToWeather(weather* p_weather)
     else if(p_weather->mainW == "Mist")
     {
         //SerialMon.print(F("Changing to Mist\n\r"));
-        gCurrentPalette = OceanColors_p;
+        gCurrentPalette = CloudColors_p;
         currentBlending = NOBLEND;
     }
     else
@@ -171,6 +313,139 @@ const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM =
     CRGB::Blue,
     CRGB::Black,
     CRGB::Black
+};
+
+
+const TProgmemPalette16 myOceanPalette_p PROGMEM =
+{
+    CRGB::Blue,
+    CRGB::Blue, // 'white' is too bright compared to red and blue
+    CRGB::DeepSkyBlue,
+    CRGB::DeepSkyBlue,
+    
+    CRGB::Blue,
+    CRGB::Blue, 
+    CRGB::DeepSkyBlue,
+    CRGB::DeepSkyBlue,
+    CRGB::Gray,
+    CRGB::Gray, 
+
+    CRGB::Blue,
+    CRGB::Blue,
+    CRGB::DeepSkyBlue,
+    CRGB::DeepSkyBlue, 
+    CRGB::Gray,
+    CRGB::Gray,
+};
+
+const TProgmemPalette16 myCloudPalette_p PROGMEM =
+{
+    CRGB::Yellow,
+    CRGB::Yellow, 
+    CRGB::Yellow,
+    CRGB::Yellow,
+    
+    CRGB::Yellow,
+    CRGB::Yellow, 
+    CRGB::Yellow,
+    CRGB::Yellow,
+    
+    CRGB::Yellow,
+    CRGB::Yellow, 
+    CRGB::Yellow,
+    CRGB::Yellow,
+    CRGB::Yellow,
+    CRGB::Yellow, 
+    CRGB::Yellow,
+    CRGB::Yellow,
+};
+
+const TProgmemPalette16 mySunPalette_p PROGMEM =
+{
+    CRGB::Yellow,
+    CRGB::Yellow, 
+    CRGB::Yellow,
+    CRGB::Yellow,
+    
+    CRGB::Yellow,
+    CRGB::Yellow, 
+    CRGB::Yellow,
+    CRGB::Yellow,
+    
+    CRGB::Yellow,
+    CRGB::Yellow, 
+    CRGB::Yellow,
+    CRGB::Yellow,
+    CRGB::Yellow,
+    CRGB::Yellow, 
+    CRGB::Yellow,
+    CRGB::Yellow,
+};
+
+const TProgmemPalette16 myRainPalette_p PROGMEM =
+{
+    CRGB::Yellow,
+    CRGB::Yellow, 
+    CRGB::Yellow,
+    CRGB::Yellow,
+    
+    CRGB::Yellow,
+    CRGB::Yellow, 
+    CRGB::Yellow,
+    CRGB::Yellow,
+    
+    CRGB::Yellow,
+    CRGB::Yellow, 
+    CRGB::Yellow,
+    CRGB::Yellow,
+    CRGB::Yellow,
+    CRGB::Yellow, 
+    CRGB::Yellow,
+    CRGB::Yellow,
+};
+
+const TProgmemPalette16 myClearPalette_p PROGMEM =
+{
+    CRGB::Yellow,
+    CRGB::Yellow, 
+    CRGB::Yellow,
+    CRGB::Yellow,
+    
+    CRGB::Yellow,
+    CRGB::Yellow, 
+    CRGB::Yellow,
+    CRGB::Yellow,
+    
+    CRGB::Yellow,
+    CRGB::Yellow, 
+    CRGB::Yellow,
+    CRGB::Yellow,
+    CRGB::Yellow,
+    CRGB::Yellow, 
+    CRGB::Yellow,
+    CRGB::Yellow,
+};
+
+const TProgmemPalette16 myMistPalette_p PROGMEM =
+{
+    CRGB::Yellow,
+    CRGB::Yellow, 
+    CRGB::Yellow,
+    CRGB::Yellow,
+    
+    CRGB::Yellow,
+    CRGB::Yellow, 
+    CRGB::Yellow,
+    CRGB::Yellow,
+    
+    CRGB::Yellow,
+    CRGB::Yellow, 
+    CRGB::Yellow,
+    CRGB::Yellow,
+    CRGB::Yellow,
+    CRGB::Yellow, 
+    CRGB::Yellow,
+    CRGB::Yellow,
 };
 
 void no_wifi_rgb(void)
