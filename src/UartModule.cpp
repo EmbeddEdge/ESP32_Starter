@@ -3,7 +3,8 @@
 #include "UartModule.h"
 
 extern uint8_t gFlagTrig1;
-extern uint8_t gFlagTrig2; 
+extern uint8_t gFlagTrig2;
+extern uint8_t g_togButt; 
 extern EnumMode_t  g_enum_action_mode;
 extern uint16_t g_frames_per_second;
 extern EnumEndpoint_t g_enum_endpoint;
@@ -98,6 +99,11 @@ void ProcessCmd(char* p_Command)
       //gFlagTrig2 = 1;
       //g_enum_action_mode = MODE_MOOD;
       SerialMon.print(F("Simulation Button 2 Pressed\n\r"));
+    }
+    else if(strcmp(userCMD , "Tog\r\n")==0 || strcmp(userCMD , "tog\r\n")==0)
+    {
+      g_togButt = 1;
+      SerialMon.print(F("Toggle colour button pressed\n\r"));
     }
     else if(strcmp(userCMD , "D\r\n")==0 || strcmp(userCMD , "d\r\n")==0)
     {

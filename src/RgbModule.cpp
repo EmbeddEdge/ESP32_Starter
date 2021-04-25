@@ -472,7 +472,7 @@ void no_wifi_rgb(void)
     currentBlending = NOBLEND;
 }
 
-void FadeInOut(CRGB::HTMLColorCode Color, uint8_t pIndex)
+void FadeInOut(uint64_t Color, uint8_t pIndex)
 {
     uint16_t red = (Color >> 16) & 0xff;
     uint16_t green = (Color >> 8) & 0xff; 

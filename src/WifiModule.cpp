@@ -30,90 +30,39 @@ Setup the WiFi state
 */
 void setupWiFiConfig()
 {
-    Serial.println("\nStarting");
+    SerialMon.println("\nConfiguration portal requested.");
+    digitalWrite(PIN_LED, LED_ON); // turn the LED on by making the voltage LOW to tell us we are in configuration mode.
 
-  unsigned long startedAt = millis();
+    //Local intialization. Once its business is done, there is no need to keep it around
+    ESP_WiFiManager ESP_wifiManager;
 
-  //Local intialization. Once its business is done, there is no need to keep it around
-  // Use this to default DHCP hostname to ESP8266-XXXXXX or ESP32-XXXXXX
-  //ESP_WiFiManager ESP_wifiManager;
-  // Use this to personalize DHCP hostname (RFC952 conformed)
-  ESP_WiFiManager ESP_wifiManager("ConfigOnSwitch");
-
-  //ESP_wifiManager.resetSettings();
-
-  ESP_wifiManager.setDebugOutput(true);
-
-  ESP_wifiManager.setMinimumSignalQuality(-1);
-  // Set static IP, Gateway, Subnetmask, DNS1 and DNS2. New in v1.0.5
-  ESP_wifiManager.setSTAStaticIPConfig(stationIP, gatewayIP, netMask, dns1IP, dns2IP);                             
-
-  // We can't use WiFi.SSID() in ESP32as it's only valid after connected.
-  // SSID and Password stored in ESP32 wifi_ap_record_t and wifi_config_t are also cleared in reboot
-  // Have to create a new function to store in EEPROM/SPIFFS for this purpose
-  Router_SSID = ESP_wifiManager.WiFi_SSID();
-  Router_Pass = ESP_wifiManager.WiFi_Pass();
-
-  //Remove this line if you do not want to see WiFi password printed
-  Serial.println("Stored: SSID = " + Router_SSID + ", Pass = " + Router_Pass);
-
-  // SSID to uppercase
-  ssid.toUpperCase();
-
-  if (Router_SSID == "")
-  {
-    Serial.println("We haven't got any access point credentials, so get them now");
-
-    digitalWrite(PIN_LED, LED_ON); // Turn led on as we are in configuration mode.
+    //Check if there is stored WiFi router/password credentials.
+    //If not found, device will remain in configuration mode until switched off via webserver.
+    SerialMon.print("Opening configuration portal. ");
+    Router_SSID = ESP_wifiManager.WiFi_SSID();
+    if (Router_SSID != "")
+    {
+      ESP_wifiManager.setConfigPortalTimeout(60); //If no access point name has been previously entered disable timeout.
+      SerialMon.println("Got stored Credentials. Timeout 60s");
+    }
+    else
+      SerialMon.println("No stored Credentials. No timeout");
 
     //it starts an access point
     //and goes into a blocking loop awaiting configuration
     if (!ESP_wifiManager.startConfigPortal((const char *) ssid.c_str(), password))
-      Serial.println("Not connected to WiFi but continuing anyway.");
-    else
-      Serial.println("WiFi connected...yeey :)");
-  }
-
-  digitalWrite(PIN_LED, LED_OFF); // Turn led off as we are not in configuration mode.
-
-  startedAt = millis();
-
-  while ( (WiFi.status() != WL_CONNECTED) && (millis() - startedAt < WIFI_CONNECT_TIMEOUT ) )
-  {
-    WiFi.mode(WIFI_STA);
-    WiFi.persistent (true);
-
-    // We start by connecting to a WiFi network
-
-    Serial.print("Connecting to ");
-    Serial.println(Router_SSID);
-
-    WiFi.config(stationIP, gatewayIP, netMask);
-    //WiFi.config(stationIP, gatewayIP, netMask, dns1IP, dns2IP);
-
-    WiFi.begin(Router_SSID.c_str(), Router_Pass.c_str());
-
-    int i = 0;
-    while ((!WiFi.status() || WiFi.status() >= WL_DISCONNECTED) && i++ < WHILE_LOOP_STEPS)
     {
-      delay(WHILE_LOOP_DELAY);
+      SerialMon.println("Not connected to WiFi but continuing anyway.");
     }
-  }
+    else
+    {
+      //if you get here you have connected to the WiFi
+      SerialMon.println("connected...yeey :)");
+    }
 
-  Serial.print("After waiting ");
-  Serial.print((millis() - startedAt) / 1000);
-  Serial.print(" secs more in setup(), connection result is ");
-
-  if (WiFi.status() == WL_CONNECTED)
-  {
-    WiFi.mode(WIFI_AP_STA); 
-    Serial.print("connected. Local IP: ");
-    Serial.println(WiFi.localIP());
-  }
-  else
-  {
-    Serial.println(ESP_wifiManager.getStatus(WiFi.status()));
-  }
+    gFlagTrig1 = 0;
+    gFlagTrig2 = 0;
+    digitalWrite(PIN_LED, LED_OFF); // Turn led off as we are not in configuration mode.
 }
 
 /* **************requestConfigPortal******************************************************

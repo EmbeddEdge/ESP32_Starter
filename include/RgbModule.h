@@ -32,7 +32,8 @@ void SetupTotallyRandomPalette(void);
 void SetupBlackAndWhiteStripedPalette(void);
 void SetupPurpleAndGreenPalette(void);
 void no_wifi_rgb(void);
-void FadeInOut(CRGB::HTMLColorCode, uint8_t);
+//void FadeInOut(CRGB::HTMLColorCode, uint8_t);
+void FadeInOut(uint64_t, uint8_t);
 void setAll(byte, byte, byte); 
 void setPixel(int, byte, byte, byte); 
 
