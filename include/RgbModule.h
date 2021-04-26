@@ -24,6 +24,29 @@
 #define BRIGHTNESS         200
 #define FRAMES_PER_SECOND  100
 
+const TProgmemPalette16 myClearPalette_p PROGMEM =
+{
+    CRGB::DarkGreen,
+    CRGB::DarkGreen,
+    CRGB::DarkOliveGreen,
+    CRGB::DarkGreen,
+
+    CRGB::Green,
+    CRGB::ForestGreen,
+    CRGB::OliveDrab,
+    CRGB::Green,
+
+    CRGB::SeaGreen,
+    CRGB::DarkGreen,
+    CRGB::LimeGreen,
+    CRGB::YellowGreen,
+
+    CRGB::LimeGreen,
+    CRGB::LawnGreen,
+    CRGB::DarkGreen,
+    CRGB::ForestGreen
+};
+
 //RGB Pattern Functions
 void FillLEDsFromPaletteColors(uint8_t);
 void ChangePaletteToWeather(weather*);

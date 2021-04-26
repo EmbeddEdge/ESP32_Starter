@@ -157,6 +157,7 @@ extern uint16_t g_frames_per_second;
 extern CRGBPalette16 myRedWhiteBluePalette;
 extern const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM;
 extern const TProgmemPalette16 myOceanPalette_p PROGMEM;
+extern const TProgmemPalette16 myClearPalette_p PROGMEM;
 extern const TProgmemPalette16 myCloudPalette_p PROGMEM;
 CRGBPalette16 myCloudPalette_gp = white_christmas_gp;
 
@@ -200,7 +201,7 @@ void ChangePaletteToWeather(weather* p_weather)
     else if(p_weather->mainW == "Clear")
     {
         //SerialMon.print(F("Changing to Clear\n\r"));
-        gCurrentPalette = ForestColors_p;
+        gCurrentPalette = myClearPalette_p;
         currentBlending = NOBLEND;
     }
     else if(p_weather->mainW == "Mist")
@@ -383,28 +384,6 @@ const TProgmemPalette16 mySunPalette_p PROGMEM =
 };
 
 const TProgmemPalette16 myRainPalette_p PROGMEM =
-{
-    CRGB::Yellow,
-    CRGB::Yellow, 
-    CRGB::Yellow,
-    CRGB::Yellow,
-    
-    CRGB::Yellow,
-    CRGB::Yellow, 
-    CRGB::Yellow,
-    CRGB::Yellow,
-    
-    CRGB::Yellow,
-    CRGB::Yellow, 
-    CRGB::Yellow,
-    CRGB::Yellow,
-    CRGB::Yellow,
-    CRGB::Yellow, 
-    CRGB::Yellow,
-    CRGB::Yellow,
-};
-
-const TProgmemPalette16 myClearPalette_p PROGMEM =
 {
     CRGB::Yellow,
     CRGB::Yellow, 
