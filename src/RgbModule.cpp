@@ -183,14 +183,14 @@ void ChangePaletteToWeather(weather* p_weather)
     if(p_weather->mainW == "Clouds")
     {
         //SerialMon.print(F("Changing to Clouds\n\r"));
-        gCurrentPalette = CloudColors_p;
-        currentBlending = LINEARBLEND;
+        gCurrentPalette = myCloud_p;
+        currentBlending = NOBLEND;
     }
     else if(p_weather->mainW == "Sun")
     {
         //SerialMon.print(F("Changing to Sun\n\r"));
         gCurrentPalette = LavaColors_p;
-        currentBlending = NOBLEND;
+        currentBlending = LINEARBLEND;
     }
     else if(p_weather->mainW == "Rain")
     {
