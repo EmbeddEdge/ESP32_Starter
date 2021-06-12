@@ -64,7 +64,7 @@ String ssid = "ESP_" + String(ESP_getChipId(), HEX);
 const char* password = "your_password";
 
 String endpoint = "http://api.openweathermap.org/data/2.5/weather?q=Cape%20Town,za&APPID=";
-const String key = "b2db60f3906cb485bba1d93fe2a17395";
+const String key = "";
 
 
 // SSID and PW for your Router
@@ -215,7 +215,7 @@ void user_mode_set(void)
         g_enum_action_mode = MODE_DEFAULT;
       }
       
-      endpoint_mode_set();                            //Upadte Location according to user
+      endpoint_mode_set();                            //Update Location according to user
       weatherHttpGET(endpoint, key, &weatherForRGB);  //Fetch weather data on a timed interval  
       ChangePaletteToWeather(&weatherForRGB);         //Update the RGB settings based on input data
 
