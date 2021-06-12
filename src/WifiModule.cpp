@@ -1,7 +1,10 @@
 #include <Arduino.h>
-#include <ESP_WiFiManager.h>              //https://github.com/khoih-prog/ESP_WiFiManager
+#include <ESPAsync_WiFiManager.h> 
+//#include <ESP_WiFiManager.h>              //https://github.com/khoih-prog/ESP_WiFiManager
 #include "WifiModule.h"
 #include "main.h"
+
+#define HTTP_PORT           80
 
 // Define the Button trigger flags
 extern uint8_t gFlagTrig1;
@@ -33,8 +36,11 @@ void setupWiFiConfig()
     SerialMon.println("\nConfiguration portal requested.");
     digitalWrite(PIN_LED, LED_ON); // turn the LED on by making the voltage LOW to tell us we are in configuration mode.
 
-    //Local intialization. Once its business is done, there is no need to keep it around
-    ESP_WiFiManager ESP_wifiManager;
+    AsyncWebServer webServer(HTTP_PORT);
+
+    DNSServer dnsServer;
+
+    ESPAsync_WiFiManager ESP_wifiManager(&webServer, &dnsServer, "AutoConnectAP");;
 
     //Check if there is stored WiFi router/password credentials.
     //If not found, device will remain in configuration mode until switched off via webserver.
@@ -75,8 +81,12 @@ void requestConfigPortal()
     SerialMon.println("\nConfiguration portal requested.");
     digitalWrite(PIN_LED, LED_ON); // turn the LED on by making the voltage LOW to tell us we are in configuration mode.
 
+    AsyncWebServer webServer(HTTP_PORT);
+
+    DNSServer dnsServer;
+
     //Local intialization. Once its business is done, there is no need to keep it around
-    ESP_WiFiManager ESP_wifiManager;
+    ESPAsync_WiFiManager ESP_wifiManager(&webServer, &dnsServer, "AutoConnectAP");;
 
     //Check if there is stored WiFi router/password credentials.
     //If not found, device will remain in configuration mode until switched off via webserver.
@@ -84,8 +94,8 @@ void requestConfigPortal()
     Router_SSID = ESP_wifiManager.WiFi_SSID();
     if (Router_SSID != "")
     {
-      ESP_wifiManager.setConfigPortalTimeout(60); //If no access point name has been previously entered disable timeout.
-      SerialMon.println("Got stored Credentials. Timeout 60s");
+      ESP_wifiManager.setConfigPortalTimeout(30); //If no access point name has been previously entered disable timeout.
+      SerialMon.println("Got stored Credentials. Timeout 30s");
     }
     else
       SerialMon.println("No stored Credentials. No timeout");
