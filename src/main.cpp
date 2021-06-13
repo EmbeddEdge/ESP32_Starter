@@ -3,7 +3,7 @@
 * Filename              :   main.c
 * Author                :   Turyn Lim Banda
 * Origin Date           :   26/07/2020
-* Version               :   1.0.0
+* Version               :   1.0.1
 * Compiler              :   PlatformIO
 * Target                :   ESP32
 * Notes                 :   None
@@ -64,7 +64,7 @@ String ssid = "ESP_" + String(ESP_getChipId(), HEX);
 const char* password = "your_password";
 
 String endpoint = "http://api.openweathermap.org/data/2.5/weather?q=Cape%20Town,za&APPID=";
-const String key = "";
+const String key = "b2db60f3906cb485bba1d93fe2a17395";
 
 
 // SSID and PW for your Router
@@ -83,7 +83,7 @@ String g_httpsResponse[10] = {};
 CRGB leds[NUM_LEDS];
 CRGBArray<NUM_LEDS> ledsTF;
 
-//Starting to add an array for colour selection. Not yet implemented.
+//Starting to add an array for colour selection. 
 uint64_t pixColours[] = {0xF0F8FF, 0x9966CC, 0xFAEBD7, 0x00FFFF, 0x7FFFD4,
                          0xF0FFFF, 0xF5F5DC, 0xFFE4C4, 0x000000, 0xFFEBCD,
                          0x0000FF, 0x8A2BE2, 0xA52A2A, 0xDEB887, 0x5F9EA0,
@@ -156,8 +156,10 @@ void setup()
 void loop()
 {
   //Do the initial checks i.e. is WiFi Connected? Is there serial data?
-  requestConfigPortal();  //Is configuration portal requested?
-  checkStatusWifi();         
+  #if DEBUG
+  checkStatusWifi(); 
+  #endif
+  requestConfigPortal();  //Is configuration portal requested?        
   ReadSerialMon();        //Read the serial line if anything is there
 
   //Check the current mode of operation and set the RGB settings accordingly
@@ -192,19 +194,10 @@ void user_mode_set(void)
         g_frames_per_second = 1000;
 
         FadeInOut(CRGB::Crimson, fadeIndex);
-
-        //static uint8_t countIndex;
-        //countIndex = countIndex + 1; // motion speed
-
-        //Rapid blinks for no WiFi
-        //no_wifi_rgb();
-        //Display the RGB strip based the up-to-date settings
-        //FillLEDsFromPaletteColors(countIndex);
-        
       }
       else
       {
-        g_enum_action_mode = MODE_WIFI_WEATHER;
+        g_enum_action_mode = MODE_WIFI_WEATHER_2;
       }
     }
     break;
@@ -223,6 +216,24 @@ void user_mode_set(void)
       countIndex = countIndex + 1; // motion speed
 
       FillLEDsFromPaletteColors(countIndex); //Display the RGB strip based the up-to-date settings
+    }
+    break;
+    case MODE_WIFI_WEATHER_2:
+    {
+      static uint8_t fadeIndex;
+      static uint64_t colourIndex = 0;
+
+      if(WiFi.status() != WL_CONNECTED)
+      {
+        g_enum_action_mode = MODE_DEFAULT;
+      }
+
+      fadeIndex = upDownCounterInt();
+      endpoint_mode_set();                            //Update Location according to user
+      weatherHttpGET(endpoint, key, &weatherForRGB);  //Fetch weather data on a timed interval  
+      colourIndex = ChangeFadeToWeather(&weatherForRGB);         //Update the RGB settings based on input data
+
+      FadeInOut(pixColours[colourIndex], fadeIndex);
     }
     break;
     case MODE_MOOD: 
@@ -252,7 +263,6 @@ uint8_t upCounterInt()
 {
   static uint8_t countIndex;
   countIndex = countIndex + 1; // motion speed
-    
   return countIndex; 
 }
 
@@ -260,7 +270,6 @@ uint8_t upDownCounterInt()
 {
   static uint8_t countIndex;
   static uint8_t upDown = 0;
-
   if(upDown==0)
   {
     countIndex = countIndex + 1; // motion speed
