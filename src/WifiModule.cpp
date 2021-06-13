@@ -127,14 +127,16 @@ void weatherHttpGET(String p_endpoint, String p_key, weather *payloadWeather)
   unsigned long currentMillis = millis();
   uint16_t interval = 30000; //30 seconds
   static unsigned long previousMillis = currentMillis;
-/*
+
+  #if DEBUG_TIME
   SerialMon.print("Current Time: ");
   SerialMon.println(currentMillis);
   SerialMon.print("Saved Time: ");
   SerialMon.println(previousMillis);
   SerialMon.print("Diff Time: ");
   SerialMon.println(currentMillis - previousMillis);
-*/
+  #endif
+
   if(currentMillis - previousMillis >= interval)
   {
     previousMillis = currentMillis;
@@ -143,20 +145,21 @@ void weatherHttpGET(String p_endpoint, String p_key, weather *payloadWeather)
       HTTPClient http;
 
       http.begin(p_endpoint + p_key);
-      SerialMon.println(p_endpoint+p_key);
-      SerialMon.println(p_endpoint);
     
       int httpCode = http.GET();
+      #if DEBUG
+      SerialMon.println(p_endpoint+p_key);
+      SerialMon.println(p_endpoint);
       SerialMon.print("HTTP GET return code: ");
       SerialMon.println(httpCode);
+      #endif
     
       if (httpCode > 0) 
       { //Check for the returning code
         String payload = http.getString();
-        //Stream *payload;
-        //http.writeToStream(&payload);
+        
         parseWeatherData(payload, payloadWeather);
-        //Debug
+        #if DEBUG
         SerialMon.println(payload);
         SerialMon.println();
         SerialMon.print(F("\rWeather longitude: "));
@@ -177,6 +180,7 @@ void weatherHttpGET(String p_endpoint, String p_key, weather *payloadWeather)
         SerialMon.println(payloadWeather->tempMin);
         SerialMon.print(F("\rWeather Temperature Max: "));
         SerialMon.println(payloadWeather->tempMax);
+        #endif
       }
       else 
       {
@@ -204,7 +208,7 @@ void heartBeatPrint(void)
   }
   if (num == 80)
   {
-    SerialMon.println();
+    SerialMon.println(); 
     num = 1;
   }
   else if (num++ % 10 == 0)

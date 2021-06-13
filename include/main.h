@@ -23,7 +23,8 @@
 #include "RgbModule.h"
 #include "UartModule.h"
 
-#define DEBUG             0   // 0 = debugging disabled, 1 = enabled
+#define DEBUG             1   // 0 = debugging disabled, 1 = enabled
+#define DEBUG_TIME        0   // 0 = debugging disabled, 1 = enabled
 
 // Use false if you don't like to display Available Pages in Information Page of Config Portal
 // Comment out or use true to display Available Pages in Information Page of Config Portal
@@ -99,7 +100,8 @@
 typedef enum
 { // Procedures
   MODE_DEFAULT, 
-  MODE_WIFI_WEATHER,   
+  MODE_WIFI_WEATHER, 
+  MODE_WIFI_WEATHER_2,  
   MODE_MOOD,                
 } EnumMode_t;
 

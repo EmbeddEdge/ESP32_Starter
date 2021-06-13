@@ -204,7 +204,7 @@ void ChangePaletteToWeather(weather* p_weather)
         gCurrentPalette = myClearPalette_p;
         currentBlending = NOBLEND;
     }
-    else if(p_weather->mainW == "Mist")
+    else if(p_weather->mainW == "Mist" || p_weather->mainW == "Mist")
     {
         //SerialMon.print(F("Changing to Mist\n\r"));
         gCurrentPalette = CloudColors_p;
@@ -220,6 +220,44 @@ void ChangePaletteToWeather(weather* p_weather)
     //Change the hue according to temperature
 
     //Change the speed according to pressure?
+}
+
+uint64_t ChangeFadeToWeather(weather* p_weather)
+{
+    uint64_t colourIndex = 0; 
+    //Change the pallette according to Main Description
+    if(p_weather->mainW == "Clouds")
+    {
+        //SerialMon.print(F("Changing to Clouds\n\r"));
+        colourIndex = 42;
+    }
+    else if(p_weather->mainW == "Sun")
+    {
+        //SerialMon.print(F("Changing to Sun\n\r"));
+        colourIndex = 141;
+    }
+    else if(p_weather->mainW == "Rain")
+    {
+        //SerialMon.print(F("Changing to Rain\n\r"));
+        colourIndex = 136;
+    }
+    else if(p_weather->mainW == "Clear")
+    {
+        //SerialMon.print(F("Changing to Clear\n\r"));
+        colourIndex = 129;
+    }
+    else if(p_weather->mainW == "Mist" || p_weather->mainW == "Mist")
+    {
+        //SerialMon.print(F("Changing to Mist\n\r"));
+        colourIndex = 124;
+    }
+    else
+    {
+        colourIndex = 144;
+    }
+
+    return colourIndex;
+    
 }
 
 // There are several different palettes of colors demonstrated here.

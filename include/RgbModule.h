@@ -2,6 +2,7 @@
 #define RgbModuleH
 
 #include "FastLED.h"
+#include "pixeltypes.h"
 #include "WifiModule.h"
 
 #if defined(FASTLED_VERSION) && (FASTLED_VERSION < 3001000)
@@ -73,6 +74,7 @@ const TProgmemPalette16 myCloud_p PROGMEM =
 //RGB Pattern Functions
 void FillLEDsFromPaletteColors(uint8_t);
 void ChangePaletteToWeather(weather*);
+uint64_t ChangeFadeToWeather(weather*);
 void ChangePalettePeriodically(void);
 void SetupTotallyRandomPalette(void);
 void SetupBlackAndWhiteStripedPalette(void);
